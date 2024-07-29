@@ -1,0 +1,171 @@
+{
+  "drinks_menu": [
+    {
+      "name": "Espresso",
+      "sizes": [
+        {
+          "size": "Small",
+          "price": 2.00
+        },
+        {
+          "size": "Medium",
+          "price": 2.50
+        },
+        {
+          "size": "Large",
+          "price": 3.00
+        }
+      ]
+    },
+    {
+      "name": "Latte",
+      "sizes": [
+        {
+          "size": "Small",
+          "price": 3.00
+        },
+        {
+          "size": "Medium",
+          "price": 3.50
+        },
+        {
+          "size": "Large",
+          "price": 4.00
+        }
+      ]
+    },
+    {
+      "name": "Cappuccino",
+      "sizes": [
+        {
+          "size": "Small",
+          "price": 3.00
+        },
+        {
+          "size": "Medium",
+          "price": 3.50
+        },
+        {
+          "size": "Large",
+          "price": 4.00
+        }
+      ]
+    },
+    {
+      "name": "Mocha",
+      "sizes": [
+        {
+          "size": "Small",
+          "price": 3.50
+        },
+        {
+          "size": "Medium",
+          "price": 4.00
+        },
+        {
+          "size": "Large",
+          "price": 4.50
+        }
+      ]
+    },
+    {
+      "name": "Hot Chocolate",
+      "sizes": [
+        {
+          "size": "Small",
+          "price": 2.50
+        },
+        {
+          "size": "Medium",
+          "price": 3.00
+        },
+        {
+          "size": "Large",
+          "price": 3.50
+        }
+      ]
+    },
+    {
+      "name": "Tea",
+      "sizes": [
+        {
+          "size": "Small",
+          "price": 1.50
+        },
+        {
+          "size": "Medium",
+          "price": 2.00
+        },
+        {
+          "size": "Large",
+          "price": 2.50
+        }
+      ]
+    },
+    {
+      "name": "Beer",
+      "sizes": [
+        {
+          "size": "Pint",
+          "price": 5.00
+        },
+        {
+          "size": "Half Pint",
+          "price": 3.00
+        }
+      ]
+    },
+    {
+      "name": "Wine",
+      "sizes": [
+        {
+          "size": "Glass",
+          "price": 6.00
+        },
+        {
+          "size": "Bottle",
+          "price": 25.00
+        }
+      ]
+    },
+    {
+      "name": "Margarita",
+      "sizes": [
+        {
+          "size": "Regular",
+          "price": 8.00
+        },
+        {
+          "size": "Large",
+          "price": 10.00
+        }
+      ]
+    },
+    {
+      "name": "Whiskey",
+      "sizes": [
+        {
+          "size": "Single",
+          "price": 7.00
+        },
+        {
+          "size": "Double",
+          "price": 12.00
+        }
+      ]
+    },
+    {
+      "name": "Cocktail",
+      "sizes": [
+        {
+          "size": "Regular",
+          "price": 9.00
+        },
+        {
+          "size": "Large",
+          "price": 12.00
+        }
+      ]
+    }
+  ]
+}
