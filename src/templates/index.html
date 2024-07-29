@@ -8,12 +8,27 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
-    <form action="/get_order_summary" method="post" class="form-style">
-        <h1>Describe your Order</h1>
+    <form action="/process_order" method="post" class="form-style">
+        <h1>Place your Order</h1>
         <div class="input-group">
-            <input type="text" placeholder="describe your order" name="order" />
+            <input type="text" placeholder="e.g. Hello, can I get 3 pints of beer and a double shot of whiskey please?" name="order" />
         </div>
         <input type="submit" value="Place Order">
     </form>
+
+    <h2>Drinks Menu</h2>
+    <div id="drinks-menu">
+        {% for drink in drinks_menu %}
+            <div class="drink-item">
+                <h3>{{ drink.name }}</h3>
+                <ul>
+                    {% for size in drink.sizes %}
+                        <li>{{ size.size }} - £{{ size.price }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endfor %}
+    </div>
+
 </body>
 </html>
