@@ -6,14 +6,38 @@
     <title>AI Bar System</title>
     <link rel="stylesheet" href="static/styling.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function(){
+            $('form').on('submit', function(event){
+                event.preventDefault(); // Prevent the form from submitting the default way
+                var orderData = $(this).serialize(); // Serialize the form data
+                $.ajax({
+                    url: '/process_order',
+                    type: 'POST',
+                    data: orderData,
+                    success: function(response){
+                        $('#response').html(response); // Display the response in the div
+                    },
+                    error: function(xhr, status, error){
+                        console.error('Error:', error);
+                        $('#response').html('An error occurred while processing the order.');
+                    }
+                });
+            });
+        });
+    </script>
+    
 </head>
 <body>
     <form action="/process_order" method="post" class="form-style">
         <h1>Place your Order</h1>
         <div class="input-group">
-            <input type="text" placeholder="e.g. Hello, can I get 3 pints of beer and a double shot of whiskey please?" name="order" />
+            <input type="text" placeholder="e.g. Hello. Please can I order one large beer?" name="order" />
         </div>
         <input type="submit" value="Place Order">
+        <div id="response"></div>
     </form>
 
     <h2>Drinks Menu</h2>

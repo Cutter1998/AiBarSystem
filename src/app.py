@@ -17,13 +17,56 @@ def index():
 
 @app.route('/process_order', methods=['POST'])
 def process_order():
+    global prompts
+    prompts = get_prompts_from_file('prompts.txt')
     order_input = request.form['order']
     order_valid, order_guidance = verify_order(order_input)
-    if(order_valid):
+    if order_valid:
         order_json = generate_order_json(order_guidance)
-        return "Order placed successfully\n" + order_json
+        return "Order placed successfully : " + order_json
     else:
         return order_guidance
+
+def verify_order(order_input):
+    drinks_menu_lines = read_file_as_string(drinks_menu_json_url)
+    prompt = prompts["VALIDATE"] + "\n" + drinks_menu_lines
+    print(prompt)
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": prompt },
+            {"role": "user", "content": order_input}
+        ]
+    )
+    print(response.choices[0].message.content)
+    order_valid, order_guidance = split_at_first_colon(response.choices[0].message.content)
+    print(order_valid)
+    print(order_guidance)
+    order_valid = (order_valid == 'VALID') # conversion to bool
+    return order_valid, order_guidance
+
+def generate_order_json(user_order):
+    drinks_menu_lines = read_file_as_string(drinks_menu_json_url)
+    prompt = prompts["JSON"] + "\n" + drinks_menu_lines
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        response_format={ "type": "json_object" },
+        messages=[
+            {"role": "system", "content": prompt},
+            {"role": "user", "content": user_order}
+        ]
+    )
+    return response.choices[0].message.content
+
+def get_prompts_from_file(file_path):
+    with open(file_path, 'r') as file:
+        content = file.read()
+    doubleNewlineDivisions = content.split('\n\n')
+    prompts = {}
+    for prompt in doubleNewlineDivisions:
+        promptKey = prompt.split('--')[1] # Get prompt dict key (prompt title)
+        prompts[promptKey] = prompt.split('--')[2]
+    return prompts
 
 def read_file_as_string(file_path):
     try:
@@ -34,22 +77,6 @@ def read_file_as_string(file_path):
         return "File not found."
     except Exception as e:
         return f"An error occurred: {e}"
-
-def verify_order(order_input):
-    drinks_menu_lines = read_file_as_string(drinks_menu_json_url)
-    print(drinks_menu_lines)
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": f"You assist people with their drinks order.\nHere is the drinks menu for the restaurant:{drinks_menu_lines}\nIf the customers order is valid, return the word 'VALID:' (colon included) followed by a simple list of their order.\nIf the customers order is invalid, return the word 'INVALID:' (colon included) followed by an apology and the reason(s) why the order can't be fulfilled based on the drinks menu. Keep in mind, some items may just be spelled incorrectly, so use your best judgement to simply correct the incorrectly spelled items if you can see an item that matches, and then pass it as valid. If no size is specified, assume the largest drink option."},
-            {"role": "user", "content": order_input}
-        ]
-    )
-    order_valid, order_guidance = split_at_first_colon(response.choices[0].message.content)
-    print(order_valid)
-    print(order_guidance)
-    order_valid = (order_valid == 'VALID') # conversion to bool
-    return order_valid, order_guidance
 
 def split_at_first_colon(input_string):
     before_colon = ''
@@ -64,18 +91,6 @@ def split_at_first_colon(input_string):
         else:
             before_colon += char
     return before_colon, after_colon
-
-def generate_order_json(user_order):
-    drinks_menu_lines = read_file_as_string(drinks_menu_json_url)
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        response_format={ "type": "json_object" },
-        messages=[
-            {"role": "system", "content": f"You are a helpful assistant that converts a customers drink order to JSON.\nHere is the drinks menu: {drinks_menu_lines}"},
-            {"role": "user", "content": user_order}
-        ]
-    )
-    return response.choices[0].message.content
 
 if __name__ == '__main__':
     app.run(debug=True)

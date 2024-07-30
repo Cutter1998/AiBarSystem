@@ -81,6 +81,16 @@ input[type="submit"]:hover {
     margin: 5px 0;
 }
 
+#response {
+    margin-top: 20px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    background-color: #f9f9f9;
+    font-size: 1rem;
+    color: #333;
+    border-radius: 5px;
+}
+
 @media (max-width: 768px) {
     .form-style, #drinks-menu {
         width: auto;
@@ -95,5 +105,9 @@ input[type="submit"]:hover {
 
     input[type="submit"] {
         font-size: 1rem;
+    }
+
+    #response {
+        font-size: 0.9rem;
     }
 }
