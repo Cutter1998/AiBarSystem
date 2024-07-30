@@ -38,6 +38,7 @@ def verify_order(order_input):
             {"role": "user", "content": order_input}
         ]
     )
+    print(response.choices[0].message.content)
     order_valid, order_guidance = split_at_first_colon(response.choices[0].message.content)
     print(order_valid)
     print(order_guidance)
