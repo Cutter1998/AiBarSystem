@@ -3,7 +3,8 @@ An artificial intelligence system for managing bar orders, drink recommendations
 
 Run System Instructions
 =======================
-- Create env_vars.env in src and add 'OPENAI_API_KEY=your_api_key'
-- Navigate to src in your terminal
-- Run with 'python app.py'
-- Access UI at http://127.0.0.1:5000
+- cd to src
+- pip install -r requirements.txt
+- create env_vars.env and add 'OPENAI_API_KEY=your_api_key' no quotes
+- run with 'python app.py'
+- access application at http://127.0.0.1:5000
