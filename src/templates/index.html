@@ -1,58 +1,120 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Bar System</title>
-    <link rel="stylesheet" href="static/styling.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-    
+    <meta charset="UTF-8"> <!-- Character set declaration -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Responsive viewport settings -->
+    <title>AI Bar System</title> <!-- Page title -->
+    <link rel="stylesheet" href="static/styling.css"> <!-- Link to external CSS stylesheet -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet"> <!-- Link to Google Fonts -->
+
+    <!-- Include jQuery library -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- JavaScript code for handling form submission and voice transcription -->
     <script>
-        $(document).ready(function(){
-            $('form').on('submit', function(event){
+        $(document).ready(function() {
+            // Handle form submission for placing orders
+            $('form').on('submit', function(event) {
                 event.preventDefault(); // Prevent the form from submitting the default way
                 var orderData = $(this).serialize(); // Serialize the form data
                 $.ajax({
-                    url: '/process_order',
-                    type: 'POST',
-                    data: orderData,
-                    success: function(response){
-                        $('#response').html(response); // Display the response in the div
+                    url: '/process_order', // Endpoint for processing order
+                    type: 'POST', // HTTP method
+                    data: orderData, // Form data
+                    success: function(response) {
+                        $('#response').html(response.message); // Display the response message in the div
                     },
-                    error: function(xhr, status, error){
-                        console.error('Error:', error);
-                        $('#response').html('An error occurred while processing the order.');
+                    error: function(xhr, status, error) {
+                        console.error('Error:', error); // Log the error
+                        $('#response').html('An error occurred while processing the order.'); // Display error message
                     }
                 });
             });
+
+            // Handle voice transcription using Web Speech API
+            var recognition; // Variable for Web Speech API recognition
+            var isRecognizing = false; // Variable to track recognition state
+
+            if ('webkitSpeechRecognition' in window) { // Check if Web Speech API is supported
+                recognition = new webkitSpeechRecognition(); // Initialize recognition
+                recognition.continuous = false; // Set continuous recognition to false
+                recognition.interimResults = false; // Do not return interim results
+                recognition.lang = 'en-US'; // Set recognition language
+
+                recognition.onstart = function() {
+                    isRecognizing = true; // Set recognizing state to true
+                    $('input[name="order"]').attr('placeholder', 'Listening...'); // Change placeholder to 'Listening...'
+                    $('input[name="order"]').removeClass('flashing'); // Stop flashing when listening starts
+                };
+
+                recognition.onresult = function(event) {
+                    var transcript = event.results[0][0].transcript; // Get the transcript from the result
+                    $('input[name="order"]').val(transcript); // Set the transcript as the value of the input
+                    $('input[name="order"]').attr('placeholder', 'e.g. Hello. Please can I order one large beer?'); // Reset placeholder
+                };
+
+                recognition.onerror = function(event) {
+                    console.error('Recognition error:', event); // Log the error
+                    $('input[name="order"]').attr('placeholder', 'Error occurred. Try again.'); // Set error placeholder
+                    $('input[name="order"]').removeClass('flashing'); // Remove flashing in case of error
+                };
+
+                recognition.onend = function() {
+                    isRecognizing = false; // Set recognizing state to false
+                    $('input[name="order"]').attr('placeholder', 'e.g. Hello. Please can I order one large beer?'); // Reset placeholder
+                    $('input[name="order"]').removeClass('flashing'); // Stop flashing when recognition ends
+                };
+
+                $('#transcribe-button').on('mousedown', function() {
+                    if (recognition && !isRecognizing) {
+                        $('input[name="order"]').val(''); // Clear the input box
+                        $('input[name="order"]').attr('placeholder', 'Wait...'); // Set placeholder to 'Wait...'
+                        $('input[name="order"]').addClass('flashing'); // Add flashing class
+
+                        // Increase the delay before starting recognition
+                        setTimeout(function() {
+                            recognition.start(); // Start speech recognition
+                        }, 1); // Adjust this value to increase or decrease the delay
+                    }
+                });
+
+                $('#transcribe-button').on('mouseup mouseleave', function() {
+                    if (recognition && isRecognizing) {
+                        recognition.stop(); // Stop speech recognition
+                    }
+                });
+            } else {
+                console.error('Web Speech API is not supported in this browser.'); // Log if Web Speech API is not supported
+                $('#transcribe-button').hide(); // Hide the transcribe button if not supported
+            }
         });
     </script>
-    
 </head>
 <body>
-    <form action="/process_order" method="post" class="form-style">
-        <h1>Place your Order</h1>
-        <div class="input-group">
-            <input type="text" placeholder="e.g. Hello. Please can I order one large beer?" name="order" />
-        </div>
-        <input type="submit" value="Place Order">
-        <div id="response"></div>
-    </form>
-
-    <h2>Drinks Menu</h2>
-    <div id="drinks-menu">
-        {% for drink in drinks_menu %}
-            <div class="drink-item">
-                <h3>{{ drink.name }}</h3>
-                <ul>
-                    {% for size in drink.sizes %}
-                        <li>{{ size.size }} - £{{ size.price }}</li>
-                    {% endfor %}
-                </ul>
+    <div class="container"> <!-- Container for centering content -->
+        <form action="/process_order" method="post" class="form-style"> <!-- Form for placing orders -->
+            <h1>Place your Order</h1> <!-- Form heading -->
+            <div class="input-group"> <!-- Input group for styling -->
+                <input type="text" placeholder="e.g. Hello. Please can I order one large beer?" name="order" /> <!-- Order input field -->
             </div>
-        {% endfor %}
-    </div>
+            <button type="button" id="transcribe-button" class="button-style">Press and Hold to Speak</button> <!-- Button for voice transcription -->
+            <input type="submit" value="Place Order"> <!-- Submit button for form -->
+            <div id="response"></div> <!-- Div for displaying response message -->
+        </form>
 
+        <h2>Drinks Menu</h2> <!-- Drinks menu heading -->
+        <div id="drinks-menu"> <!-- Container for drinks menu -->
+            {% for drink in drinks_menu %} <!-- Loop through drinks menu items -->
+                <div class="drink-item"> <!-- Container for each drink item -->
+                    <h3>{{ drink.name }}</h3> <!-- Drink name -->
+                    <ul> <!-- List for drink sizes and prices -->
+                        {% for size in drink.sizes %} <!-- Loop through drink sizes -->
+                            <li>{{ size.size }} - £{{ size.price }}</li> <!-- Drink size and price -->
+                        {% endfor %} <!-- End loop for drink sizes -->
+                    </ul> <!-- End list for drink sizes and prices -->
+                </div> <!-- End container for each drink item -->
+            {% endfor %} <!-- End loop for drinks menu items -->
+        </div> <!-- End container for drinks menu -->
+    </div> <!-- End container for centering content -->
 </body>
 </html>
