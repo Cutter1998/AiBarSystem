@@ -22,7 +22,7 @@
                     type: 'POST', // HTTP method
                     data: orderData, // Form data
                     success: function(response) {
-                        $('#response').html(response.message); // Display the response message in the div
+                        $('#response').html(response); // Display the response message in the div
                     },
                     error: function(xhr, status, error) {
                         console.error('Error:', error); // Log the error
