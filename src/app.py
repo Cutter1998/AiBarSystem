@@ -3,18 +3,30 @@ import json
 from openai import OpenAI
 import os.path
 from dotenv import load_dotenv
+import logging
+import inspect
+import os
+from datetime import datetime
 
 load_dotenv('env_vars.env')
 app = Flask(__name__)
 client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 drinks_menu_json_url = "static/DrinksMenu.json"
 
+# Configure logging
+logging.basicConfig(level=logging.DEBUG,
+                    format='%(asctime)s %(levelname)s %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S',
+                    handlers=[logging.StreamHandler()])
+
+logger = logging.getLogger(__name__)
+
 @app.route('/')
 def index():
     with app.open_resource(drinks_menu_json_url) as f:
         drinks_menu = json.load(f)["drinks_menu"]
     return render_template('index.html', drinks_menu=drinks_menu)
-
+    
 @app.route('/process_order', methods=['POST'])
 def process_order():
     global prompts
@@ -23,14 +35,15 @@ def process_order():
     order_valid, order_guidance = verify_order(order_input)
     if order_valid:
         order_json = generate_order_json(order_guidance)
+        capture_trace("Order was valid:" + order_json)
         return "Order placed successfully : " + order_json
     else:
+        capture_trace("Order was invalid")
         return order_guidance
 
 def verify_order(order_input):
     drinks_menu_lines = read_file_as_string(drinks_menu_json_url)
     prompt = prompts["VALIDATE"] + "\n" + drinks_menu_lines
-    print(prompt)
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
@@ -38,10 +51,8 @@ def verify_order(order_input):
             {"role": "user", "content": order_input}
         ]
     )
-    print(response.choices[0].message.content)
+    capture_trace(response.choices[0].message.content)
     order_valid, order_guidance = split_at_first_colon(response.choices[0].message.content)
-    print(order_valid)
-    print(order_guidance)
     order_valid = (order_valid == 'VALID') # conversion to bool
     return order_valid, order_guidance
 
@@ -91,6 +102,20 @@ def split_at_first_colon(input_string):
         else:
             before_colon += char
     return before_colon, after_colon
+
+def capture_trace(trace, filename='captured_trace/captured_trace.log'):
+    # who called me ? :
+    current_frame = inspect.currentframe()
+    caller_frame = current_frame.f_back
+    caller_name = caller_frame.f_code.co_name
+    current_timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+    if not os.path.exists('captured_trace'):
+        os.makedirs('captured_trace')
+
+    with open(filename, 'a') as log_file:
+        log_file.write(current_timestamp + f" {caller_name}:\n" + trace + "\n")
+
 
 if __name__ == '__main__':
     app.run(debug=True)
