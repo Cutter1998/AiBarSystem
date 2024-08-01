@@ -1,14 +1,42 @@
 $(document).ready(function() {
+
+  var voices = [];
+
+   // Fetch voices asynchronously
+   function loadVoices() {
+       voices = window.speechSynthesis.getVoices();
+   }
+
+   loadVoices();
+   if (typeof speechSynthesis !== 'undefined' && speechSynthesis.onvoiceschanged !== undefined) {
+       speechSynthesis.onvoiceschanged = loadVoices;
+   }
+
   // Function to speak out the response
   function speakResponse(text) {
-      if ('speechSynthesis' in window) {
-          var msg = new SpeechSynthesisUtterance(text);
-          msg.lang = 'en-US';
-          window.speechSynthesis.speak(msg);
-      } else {
-          console.error('Text-to-Speech is not supported in this browser.');
-      }
-  }
+    if ('speechSynthesis' in window) {
+        var msg = new SpeechSynthesisUtterance(text);
+        msg.lang = 'en-US';
+
+        // Adjust pitch and rate for a cooler voice
+        msg.pitch = 1.2; // Range: 0 to 2
+        msg.rate = 1.2;  // Range: 0.1 to 10
+
+        // Load voices and set a specific voice
+        var voices = window.speechSynthesis.getVoices();
+        var selectedVoice = voices.find(voice => voice.name === 'Google UK English Female' || voice.name === 'Google UK English Female');
+
+        if (selectedVoice) {
+            msg.voice = selectedVoice;
+        }
+
+        // Cancel any ongoing speech and speak the new message
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(msg);
+    } else {
+        console.error('Text-to-Speech is not supported in this browser.');
+    }
+}
 
     // Handle form submission for placing orders
     $('form').on('submit', function(event) {
@@ -25,6 +53,7 @@ $(document).ready(function() {
             error: function(xhr, status, error) {
                 console.error('Error:', error);
                 $('#response').html('An error occurred while processing the order.');
+                speakResponse(errorMessage); // Speak the error message out loud
             }
         });
     });

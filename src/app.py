@@ -22,7 +22,7 @@ def proce6ss_order():
     order_valid, order_guidance = verify_order(order_input)
     if(order_valid):
         order_json = generate_order_json(order_guidance)
-        return "Order placed successfully\n" + order_json
+        return "Order placed successfully\n"
     else:
         return order_guidance
 
