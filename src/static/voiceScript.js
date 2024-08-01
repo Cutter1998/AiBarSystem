@@ -1,4 +1,15 @@
 $(document).ready(function() {
+  // Function to speak out the response
+  function speakResponse(text) {
+      if ('speechSynthesis' in window) {
+          var msg = new SpeechSynthesisUtterance(text);
+          msg.lang = 'en-US';
+          window.speechSynthesis.speak(msg);
+      } else {
+          console.error('Text-to-Speech is not supported in this browser.');
+      }
+  }
+
     // Handle form submission for placing orders
     $('form').on('submit', function(event) {
         event.preventDefault();
@@ -9,6 +20,7 @@ $(document).ready(function() {
             data: orderData, // Form data
             success: function(response) {
                 $('#response').html(response); // Display the response message in the div
+                speakResponse(response); // Speak the response out loud
             },
             error: function(xhr, status, error) {
                 console.error('Error:', error);
