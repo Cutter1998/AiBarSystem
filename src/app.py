@@ -30,14 +30,14 @@ def index():
     with app.open_resource(drinks_menu_json_url) as f:
         drinks_menu = json.load(f)["drinks_menu"]
     return render_template('index.html', drinks_menu=drinks_menu)
-    
+
 @app.route('/process_speech', methods=['POST'])
-def process_speech(): # JAKE - can see how I've changed this function name to 'speech' instead of 'order', because we no longer know at this point what 'mode' we are in
+def process_speech():
     global prompts
     global currentState # JAKE - This is the current state/action we are in. For example it could be set to 'CHAT' or 'DRINKS'
     global conversationMemory
-    capture_trace("Current action: " + currentState) # JAKE - capture trace is a new function I've added that sends logging to a folder called captured_trace. I have found it very helpful for understanding the flow of the LLMs
-                                                    # you can open the captured trace file as it's running and see what's going on
+    capture_trace("Current action: " + currentState)
+
     prompts = get_prompts_from_file('prompts.txt')
     customer_speech = request.form['customer_speech']
     # JAKE - We should definitely refactor the following 'action tree' / state machine to something more elegant than a beefy If statement, but it's working as a proof of concept.
@@ -45,7 +45,7 @@ def process_speech(): # JAKE - can see how I've changed this function name to 's
                                 # this LLM will either respond with regular conversation, OR it will change the currentState to the action we are now focussed on
                                 # for example, if the customer is talking about beer, it will move us into the "DRINKS" state
         reply = chat_or_action_LLM(customer_speech)
-    if(currentState == "DRINKS"): # JAKE - If we have moved to the drinks state we will enter this if statement
+    if(currentState == "DRINKS"):
         order_valid, order_guidance = verify_drinks_order_LLM(conversationMemory + customer_speech) # This here will be the same customer_speech from above that was ignored by the top-level model
         if order_valid:
             order_json = generate_drinks_order_json_LLM(order_guidance)
@@ -58,9 +58,13 @@ def process_speech(): # JAKE - can see how I've changed this function name to 's
             conversationMemory = conversationMemory + ".\n" + customer_speech + ".\n" + order_guidance + ".\n" # JAKE - can see here where the conversation memory is updated
             return order_guidance
     if(currentState == "LIGHTS"): # JAKE - Can see here how this model could be expanded for light operation or something
-        capture_trace("NOT IMPLEMENTED")
+        capture_trace("NOT IMPLEMENTED: My apologies, we are working hard behind the scenes to personalise you lighting experience")
+        currentState = "CHAT" # Return to chat state after ordering
+    if(currentState == "FOOD"): # JAKE - Can see here how this model could be expanded for light operation or something
+        capture_trace("NOT IMPLEMENTED: My apologies, we have no food on offer today")
+        currentState = "CHAT" # Return to chat state after ordering
     return reply
-    
+
 def chat_or_action_LLM(customer_speech):
     global currentState
     prompt = prompts["CHAT"]
