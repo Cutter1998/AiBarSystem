@@ -23,47 +23,63 @@ logger = logging.getLogger(__name__)
 
 @app.route('/')
 def index():
-    global currentState
-    currentState = "CHAT"
-    global conversationMemory
-    conversationMemory = ""
+    global current_state
+    current_state = "CHAT"
+    global conversation_memory
+    conversation_memory = ""
     with app.open_resource(drinks_menu_json_url) as f:
         drinks_menu = json.load(f)["drinks_menu"]
     return render_template('index.html', drinks_menu=drinks_menu)
     
 @app.route('/process_speech', methods=['POST'])
-def process_speech(): # JAKE - can see how I've changed this function name to 'speech' instead of 'order', because we no longer know at this point what 'mode' we are in
+def process_speech():
     global prompts
-    global currentState # JAKE - This is the current state/action we are in. For example it could be set to 'CHAT' or 'DRINKS'
-    global conversationMemory
-    capture_trace("Current action: " + currentState) # JAKE - capture trace is a new function I've added that sends logging to a folder called captured_trace. I have found it very helpful for understanding the flow of the LLMs
-                                                    # you can open the captured trace file as it's running and see what's going on
+    global current_state
+    global conversation_memory
     prompts = get_prompts_from_file('prompts.txt')
     customer_speech = request.form['customer_speech']
-    # JAKE - We should definitely refactor the following 'action tree' / state machine to something more elegant than a beefy If statement, but it's working as a proof of concept.
-    if(currentState == "CHAT"): # JAKE - The first state check is if we are in CHAT mode then we go to the chat_or_action LLM.
-                                # this LLM will either respond with regular conversation, OR it will change the currentState to the action we are now focussed on
-                                # for example, if the customer is talking about beer, it will move us into the "DRINKS" state
-        reply = chat_or_action_LLM(customer_speech)
-    if(currentState == "DRINKS"): # JAKE - If we have moved to the drinks state we will enter this if statement
-        order_valid, order_guidance = verify_drinks_order_LLM(conversationMemory + customer_speech) # This here will be the same customer_speech from above that was ignored by the top-level model
+    reply = handle_customer_speech(current_state, customer_speech)
+    return reply    
+
+def handle_customer_speech(current_state, customer_speech):
+    global conversation_memory
+    capture_trace("Current state is" + current_state)
+
+    if(current_state == "CHAT"): # if we are at the top level, we need to either respond with normal conversartion, or move to an action state if customer_speech requires action
+        reply = chat_or_action_LLM(customer_speech, conversation_memory)
+        actionNeeded = (reply[0] == '#') # determine if action is needed
+        if(actionNeeded):
+            current_state = which_action(reply)
+        else:
+            current_state = "CHAT" # if no action required, we can remain in CHAT state
+
+    if(current_state == "DRINKS"):
+        order_valid, order_guidance = verify_drinks_order_LLM(conversation_memory + customer_speech)
         if order_valid:
             order_json = generate_drinks_order_json_LLM(order_guidance)
-            capture_trace("Order was valid:" + order_json)
-            currentState = "CHAT"
-            conversationMemory = conversationMemory + ".\n" + customer_speech + ".\nOrder placed successfully" # JAKE - can see here where the conversation memory is updated - however, in this 'order successful' state, we may actually want to perform the conversation summarise step
-            return "Order placed successfully : " + order_json
+            capture_trace("Order valid")
+            capture_trace(order_json)
+            current_state = "CHAT" # move back to chat, drinks order placed successfully
+            reply = "Order placed successfully"
         else:
-            capture_trace("Order was invalid")
-            conversationMemory = conversationMemory + ".\n" + customer_speech + ".\n" + order_guidance + ".\n" # JAKE - can see here where the conversation memory is updated
-            return order_guidance
-    if(currentState == "LIGHTS"): # JAKE - Can see here how this model could be expanded for light operation or something
+            capture_trace("Order invalid")
+            current_state = "DRINKS" # remain in DRINKS state because the order was invalid
+            reply = order_guidance
+        
+    if(current_state == "LIGHTS"):
         capture_trace("NOT IMPLEMENTED")
-    return reply
+
+    update_conversation_memory(customer_speech, reply)
     
-def chat_or_action_LLM(customer_speech):
-    global currentState
-    prompt = prompts["CHAT"]
+    return reply
+
+def update_conversation_memory(customer_speech, reply):
+    global conversation_memory
+    conversation_memory = conversation_memory + "\n" + "Customer: " + customer_speech + "\nYou: " + reply
+
+def chat_or_action_LLM(customer_speech, conversation_history):
+    global current_state
+    prompt = prompts["CHAT"] + conversation_history
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
@@ -72,23 +88,11 @@ def chat_or_action_LLM(customer_speech):
         ]
     )
     reply = response.choices[0].message.content
-    capture_trace(reply)
-    actionNeeded = (reply[0] == '#') # JAKE - I would advice reading the prompts in prompts.txt to see why I'm doing this
-                                    # Essentially, hashes are used to mark actions
-                                    # No hash, no action
-    capture_trace("ACTION NEEDED: " + str(actionNeeded))
-    if(actionNeeded):
-        currentState = whichAction(reply)
-        return reply
-    else:
-        currentState = "CHAT" # JAKE - No state movement, we can continue to just converse
-        return reply
+    return reply
 
-def verify_drinks_order_LLM(order_input): # JAKE - All function that are directly dealing with LLMS now end in 'LLM' for clarity
-    capture_trace("INPUT IS:" + order_input)
+def verify_drinks_order_LLM(order_input):
     drinks_menu_lines = read_file_as_string(drinks_menu_json_url)
-    prompt = prompts["VALIDATE"] + "\n" + drinks_menu_lines # JAKE - you can reference this prompts[] dictionary in each of the LLM functions to see which prompt in prompts.txt they are using
-                                                            # for example, this function uses the VALIDATE prompt
+    prompt = prompts["VALIDATE"] + "\n" + drinks_menu_lines
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
@@ -96,7 +100,6 @@ def verify_drinks_order_LLM(order_input): # JAKE - All function that are directl
             {"role": "user", "content": order_input}
         ]
     )
-    capture_trace(response.choices[0].message.content)
     order_valid, order_guidance = split_at_first_colon(response.choices[0].message.content)
     order_valid = (order_valid == 'VALID') # conversion to bool
     return order_valid, order_guidance
@@ -114,7 +117,7 @@ def generate_drinks_order_json_LLM(user_order):
     )
     return response.choices[0].message.content
 
-def whichAction(string):
+def which_action(string):
     string = string.strip()
     action = string.strip('#')
     return action
