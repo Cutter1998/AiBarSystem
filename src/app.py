@@ -23,25 +23,74 @@ logger = logging.getLogger(__name__)
 
 @app.route('/')
 def index():
+    global current_state
+    current_state = "CHAT"
+    global conversation_memory
+    conversation_memory = ""
     with app.open_resource(drinks_menu_json_url) as f:
         drinks_menu = json.load(f)["drinks_menu"]
     return render_template('index.html', drinks_menu=drinks_menu)
     
-@app.route('/process_order', methods=['POST'])
-def process_order():
+@app.route('/process_speech', methods=['POST'])
+def process_speech():
     global prompts
+    global current_state
+    global conversation_memory
     prompts = get_prompts_from_file('prompts.txt')
-    order_input = request.form['order']
-    order_valid, order_guidance = verify_order(order_input)
-    if order_valid:
-        order_json = generate_order_json(order_guidance)
-        capture_trace("Order was valid:" + order_json)
-        return "Order placed successfully : " + order_json
-    else:
-        capture_trace("Order was invalid")
-        return order_guidance
+    customer_speech = request.form['customer_speech']
+    reply = handle_customer_speech(current_state, customer_speech)
+    return reply    
 
-def verify_order(order_input):
+def handle_customer_speech(current_state, customer_speech):
+    global conversation_memory
+    capture_trace("Current state is" + current_state)
+
+    if(current_state == "CHAT"): # if we are at the top level, we need to either respond with normal conversartion, or move to an action state if customer_speech requires action
+        reply = chat_or_action_LLM(customer_speech, conversation_memory)
+        actionNeeded = (reply[0] == '#') # determine if action is needed
+        if(actionNeeded):
+            current_state = which_action(reply)
+        else:
+            current_state = "CHAT" # if no action required, we can remain in CHAT state
+
+    if(current_state == "DRINKS"):
+        order_valid, order_guidance = verify_drinks_order_LLM(conversation_memory + customer_speech)
+        if order_valid:
+            order_json = generate_drinks_order_json_LLM(order_guidance)
+            capture_trace("Order valid")
+            capture_trace(order_json)
+            current_state = "CHAT" # move back to chat, drinks order placed successfully
+            reply = "Order placed successfully"
+        else:
+            capture_trace("Order invalid")
+            current_state = "DRINKS" # remain in DRINKS state because the order was invalid
+            reply = order_guidance
+        
+    if(current_state == "LIGHTS"):
+        capture_trace("NOT IMPLEMENTED")
+
+    update_conversation_memory(customer_speech, reply)
+    
+    return reply
+
+def update_conversation_memory(customer_speech, reply):
+    global conversation_memory
+    conversation_memory = conversation_memory + "\n" + "Customer: " + customer_speech + "\nYou: " + reply
+
+def chat_or_action_LLM(customer_speech, conversation_history):
+    global current_state
+    prompt = prompts["CHAT"] + conversation_history
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": prompt },
+            {"role": "user", "content": customer_speech}
+        ]
+    )
+    reply = response.choices[0].message.content
+    return reply
+
+def verify_drinks_order_LLM(order_input):
     drinks_menu_lines = read_file_as_string(drinks_menu_json_url)
     prompt = prompts["VALIDATE"] + "\n" + drinks_menu_lines
     response = client.chat.completions.create(
@@ -51,12 +100,11 @@ def verify_order(order_input):
             {"role": "user", "content": order_input}
         ]
     )
-    capture_trace(response.choices[0].message.content)
     order_valid, order_guidance = split_at_first_colon(response.choices[0].message.content)
     order_valid = (order_valid == 'VALID') # conversion to bool
     return order_valid, order_guidance
 
-def generate_order_json(user_order):
+def generate_drinks_order_json_LLM(user_order):
     drinks_menu_lines = read_file_as_string(drinks_menu_json_url)
     prompt = prompts["JSON"] + "\n" + drinks_menu_lines
     response = client.chat.completions.create(
@@ -68,6 +116,11 @@ def generate_order_json(user_order):
         ]
     )
     return response.choices[0].message.content
+
+def which_action(string):
+    string = string.strip()
+    action = string.strip('#')
+    return action
 
 def get_prompts_from_file(file_path):
     with open(file_path, 'r') as file:
@@ -104,7 +157,7 @@ def split_at_first_colon(input_string):
     return before_colon, after_colon
 
 def capture_trace(trace, filename='captured_trace/captured_trace.log'):
-    # who called me ? :
+    # get function caller for debugging help
     current_frame = inspect.currentframe()
     caller_frame = current_frame.f_back
     caller_name = caller_frame.f_code.co_name

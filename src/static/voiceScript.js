@@ -2,17 +2,17 @@ $(document).ready(function() {
     // Handle form submission for placing orders
     $('form').on('submit', function(event) {
         event.preventDefault();
-        var orderData = $(this).serialize(); // Serialize the form data
+        var speechData = $(this).serialize(); // Serialize the form data
         $.ajax({
-            url: '/process_order', // Endpoint for processing order
+            url: '/process_speech', // Endpoint for processing speech
             type: 'POST',
-            data: orderData, // Form data
+            data: speechData, // Form data
             success: function(response) {
                 $('#response').html(response); // Display the response message in the div
             },
             error: function(xhr, status, error) {
                 console.error('Error:', error);
-                $('#response').html('An error occurred while processing the order.');
+                $('#response').html('An error occurred while processing speech.');
             }
         });
     });
@@ -29,33 +29,33 @@ $(document).ready(function() {
 
         recognition.onstart = function() {
             isRecognizing = true;
-            $('input[name="order"]').attr('placeholder', 'Listening...');
-            $('input[name="order"]').removeClass('flashing');
+            $('input[name="customer_speech"]').attr('placeholder', 'Listening...');
+            $('input[name="customer_speech"]').removeClass('flashing');
         };
 
         recognition.onresult = function(event) {
             var transcript = event.results[0][0].transcript;
-            $('input[name="order"]').val(transcript); // Set the transcript as the value of the input
-            $('input[name="order"]').attr('placeholder', 'e.g. Hello. Please can I order one large beer?'); // Reset placeholder
+            $('input[name="customer_speech"]').val(transcript); // Set the transcript as the value of the input
+            $('input[name="customer_speech"]').attr('placeholder', 'e.g. Hello. Please can I order one large beer?'); // Reset placeholder
         };
 
         recognition.onerror = function(event) {
             console.error('Recognition error:', event);
-            $('input[name="order"]').attr('placeholder', 'Error occurred. Try again.');
-            $('input[name="order"]').removeClass('flashing');
+            $('input[name="customer_speech"]').attr('placeholder', 'Error occurred. Try again.');
+            $('input[name="customer_speech"]').removeClass('flashing');
         };
 
         recognition.onend = function() {
             isRecognizing = false;
-            $('input[name="order"]').attr('placeholder', 'e.g. Hello. Please can I order one large beer?');
-            $('input[name="order"]').removeClass('flashing');
+            $('input[name="customer_speech"]').attr('placeholder', 'e.g. Hello. Please can I order one large beer?');
+            $('input[name="customer_speech"]').removeClass('flashing');
         };
 
         $('#transcribe-button').on('mousedown', function() {
             if (recognition && !isRecognizing) {
-                $('input[name="order"]').val('');
-                $('input[name="order"]').attr('placeholder', 'Wait...');
-                $('input[name="order"]').addClass('flashing');
+                $('input[name="customer_speech"]').val('');
+                $('input[name="customer_speech"]').attr('placeholder', 'Wait...');
+                $('input[name="customer_speech"]').addClass('flashing');
 
                 // Increase the delay before starting recognition
                 setTimeout(function() {
