@@ -1,0 +1,8 @@
+input,expected_output
+"I need a beer","Order placed successfully : {""order"": [{""name"": ""Beer"", ""size"": ""Pint"", ""price"": 5.00}]}"
+"Yo, let me have two large wines","Order placed successfully : {""order"": [{""name"": ""Wine"", ""size"": ""Large Glass"", ""price"": 8.00}, {""name"": ""Wine"", ""size"": ""Large Glass"", ""price"": 8.00}]}"
+"I wat five bears","Order placed successfully : {""order"": [{""name"": ""Beer"", ""size"": ""Pint"", ""price"": 5.00}, {""name"": ""Beer"", ""size"": ""Pint"", ""price"": 5.00}, {""name"": ""Beer"", ""size"": ""Pint"", ""price"": 5.00}, {""name"": ""Beer"", ""size"": ""Pint"", ""price"": 5.00}, {""name"": ""Beer"", ""size"": ""Pint"", ""price"": 5.00}]}"
+"Get me a bottle of wine","Order placed successfully : {""order"": [{""name"": ""Wine"", ""size"": ""Bottle"", ""price"": 25.00}]}"
+"I need two beers and a bottle of wine","Order placed successfully : {""order"": [{""name"": ""Beer"", ""size"": ""Pint"", ""price"": 5.00}, {""name"": ""Beer"", ""size"": ""Pint"", ""price"": 5.00}, {""name"": ""Wine"", ""size"": ""Bottle"", ""price"": 25.00}]}"
+"Give me two pints of beer","Order placed successfully : {""order"": [{""name"": ""Beer"", ""size"": ""Pint"", ""price"": 5.00}, {""name"": ""Beer"", ""size"": ""Pint"", ""price"": 5.00}]}"
+"One bottle of wine","Order placed successfully : {""order"": [{""name"": ""Wine"", ""size"": ""Bottle"", ""price"": 25.00}]}"
