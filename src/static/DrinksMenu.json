@@ -119,9 +119,15 @@
       "name": "Wine",
       "sizes": [
         {
-          "size": "Glass",
+          "size": "Small Glass",
           "price": 6.00
         },
+
+        {
+          "size": "Large Glass",
+          "price": 8.00
+        },
+
         {
           "size": "Bottle",
           "price": 25.00
@@ -155,17 +161,225 @@
       ]
     },
     {
-      "name": "Cocktail",
-      "sizes": [
-        {
-          "size": "Regular",
-          "price": 9.00
-        },
-        {
-          "size": "Large",
-          "price": 12.00
-        }
-      ]
-    }
-  ]
-}
+       "name": "Martini",
+       "sizes": [
+         {
+           "size": "Regular",
+           "price": 10.00
+         },
+         {
+           "size": "Large",
+           "price": 14.00
+         }
+       ]
+     },
+     {
+       "name": "Mojito",
+       "sizes": [
+         {
+           "size": "Regular",
+           "price": 8.00
+         },
+         {
+           "size": "Large",
+           "price": 11.00
+         }
+       ]
+     },
+     {
+       "name": "Old Fashioned",
+       "sizes": [
+         {
+           "size": "Regular",
+           "price": 10.00
+         },
+         {
+           "size": "Large",
+           "price": 14.00
+         }
+       ]
+     },
+     {
+       "name": "Gin and Tonic",
+       "sizes": [
+         {
+           "size": "Single",
+           "price": 7.00
+         },
+         {
+           "size": "Double",
+           "price": 12.00
+         }
+       ]
+     },
+     {
+       "name": "Rum and Coke",
+       "sizes": [
+         {
+           "size": "Single",
+           "price": 6.00
+         },
+         {
+           "size": "Double",
+           "price": 10.00
+         }
+       ]
+     },
+     {
+       "name": "Vodka Soda",
+       "sizes": [
+         {
+           "size": "Single",
+           "price": 6.00
+         },
+         {
+           "size": "Double",
+           "price": 10.00
+         }
+       ]
+     },
+     {
+       "name": "Negroni",
+       "sizes": [
+         {
+           "size": "Regular",
+           "price": 9.00
+         },
+         {
+           "size": "Large",
+           "price": 13.00
+         }
+       ]
+     },
+     {
+       "name": "Manhattan",
+       "sizes": [
+         {
+           "size": "Regular",
+           "price": 10.00
+         },
+         {
+           "size": "Large",
+           "price": 14.00
+         }
+       ]
+     },
+     {
+       "name": "Sangria",
+       "sizes": [
+         {
+           "size": "Glass",
+           "price": 6.00
+         },
+         {
+           "size": "Pitcher",
+           "price": 20.00
+         }
+       ]
+     },
+     {
+       "name": "IPA",
+       "sizes": [
+         {
+           "size": "Pint",
+           "price": 6.00
+         },
+         {
+           "size": "Half Pint",
+           "price": 4.00
+         }
+       ]
+     },
+     {
+       "name": "Stout",
+       "sizes": [
+         {
+           "size": "Pint",
+           "price": 6.50
+         },
+         {
+           "size": "Half Pint",
+           "price": 4.50
+         }
+       ]
+     },
+     {
+       "name": "Pilsner",
+       "sizes": [
+         {
+           "size": "Pint",
+           "price": 5.50
+         },
+         {
+           "size": "Half Pint",
+           "price": 3.50
+         }
+       ]
+     },
+     {
+       "name": "Cider",
+       "sizes": [
+         {
+           "size": "Pint",
+           "price": 5.00
+         },
+         {
+           "size": "Half Pint",
+           "price": 3.00
+         }
+       ]
+     },
+     {
+       "name": "Brandy",
+       "sizes": [
+         {
+           "size": "Single",
+           "price": 7.00
+         },
+         {
+           "size": "Double",
+           "price": 12.00
+         }
+       ]
+     },
+     {
+       "name": "Tequila",
+       "sizes": [
+         {
+           "size": "Single",
+           "price": 6.00
+         },
+         {
+           "size": "Double",
+           "price": 10.00
+         }
+       ]
+     },
+     {
+       "name": "Scotch",
+       "sizes": [
+         {
+           "size": "Single",
+           "price": 8.00
+         },
+         {
+           "size": "Double",
+           "price": 15.00
+         }
+       ]
+     },
+     {
+       "name": "Baileys",
+       "sizes": [
+         {
+           "size": "Single",
+           "price": 6.00
+         },
+         {
+           "size": "Double",
+           "price": 10.00
+         }
+       ]
+     }
+   ]
+ }
